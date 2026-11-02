@@ -1,11 +1,14 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Got 30?</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" href="icons/icon48.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
 <style>
-/* Layout: two views (writer, tracker). Writer = form left, real-looking email right. Tracker = status strip, then contact cards. */
+/* Layout: two views (writer, tracker). Writer = form left, real-looking email right; stacks in the narrow sidebar. */
 :root{
   --bg:#EEF2F0; --surface:#FFFFFF; --ink:#15221D; --muted:#5A6A63; --line:#D3DCD8;
   --accent:#1E6A49; --accent-ink:#FFFFFF; --accent-soft:#DFEEE6; --warn:#9A5A0B; --warn-soft:#F7EBDA;
@@ -13,6 +16,7 @@
   --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --ui:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --letter:"Source Serif 4", Georgia, "Times New Roman", serif;
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
   --bg:#0E1412; --surface:#16201C; --ink:#E4EDE9; --muted:#93A49C; --line:#2A3832;
@@ -25,58 +29,68 @@
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
-.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
-header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
-header h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.4vw,44px);letter-spacing:-.02em;margin:0;line-height:1.05}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+header h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4.4vw,44px);letter-spacing:-.02em;margin:0;line-height:1.05}
 header p{margin:6px 0 0;color:var(--muted);max-width:60ch}
 .nav{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
 .nav button{border:0;background:transparent;color:var(--muted);font-weight:600;padding:8px 14px;border-radius:7px;display:flex;gap:8px;align-items:center}
 .nav button[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
 .nav .n{font-size:12px;font-variant-numeric:tabular-nums;padding:0 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
 .nav button[aria-current="page"] .n{background:var(--accent-ink);color:var(--accent)}
+.view{display:flex;flex-direction:column;gap:20px}
 .formula{display:flex;flex-wrap:wrap;gap:8px}
 .formula span{font-size:12.5px;font-weight:500;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--surface)}
 .formula b{color:var(--accent);font-weight:600;margin-right:4px}
 
-.grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:22px;align-items:start}
-@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.grid{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}}
 
 form{display:flex;flex-direction:column;gap:18px}
-fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;min-width:0}
 legend{font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding:0}
-label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500;min-width:0}
 label small{font-weight:400;color:var(--muted)}
-input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
-input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:400px){.row2{grid-template-columns:1fr}}
-.slots{display:flex;flex-direction:column;gap:6px}
-.slots input{font-size:14px;padding:7px 10px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+@media (max-width:400px){.row2{grid-template-columns:minmax(0,1fr)}}
 .example-note{font-size:12.5px;color:var(--warn);background:var(--warn-soft);border-radius:8px;padding:8px 11px;margin:0}
 
-.actions{display:flex;gap:10px;flex-wrap:wrap}
+.slots{display:flex;flex-direction:column;gap:8px}
+.slot{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}
+.slot input{padding:6px 8px;font-size:13.5px;border-color:transparent;background:var(--bg)}
+.slot .out{grid-column:1/-1;font-size:12.5px;color:var(--muted);padding:0 2px}
+.slot .out b{color:var(--ink);font-weight:600}
+.slot .out.past{color:var(--warn)}
+@media (max-width:420px){.slot{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.slot .d{grid-column:1/-1}}
+
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 button{font:inherit;font-weight:600;font-size:14px;border-radius:8px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 button:disabled{opacity:.55;cursor:not-allowed}
 button.ghost{padding:7px 12px;font-size:13px}
 button.danger{color:var(--warn)}
+a.btnlink{font-weight:600;font-size:13px;color:var(--accent);text-decoration:none;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);display:inline-block}
+a.btnlink:hover{border-color:var(--accent)}
 
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
-@media (min-width:861px){.panel{position:sticky;top:max(16px,env(safe-area-inset-top,0px))}}
+@media (min-width:881px){.panel{position:sticky;top:max(16px,env(safe-area-inset-top,0px))}}
 .tabs{display:flex;gap:2px;padding:6px;border-bottom:1px solid var(--line);overflow-x:auto}
 .tab{border:0;background:transparent;color:var(--muted);font-weight:500;padding:8px 12px;border-radius:7px;white-space:nowrap}
 .tab[aria-selected="true"]{background:var(--accent-soft);color:var(--ink);font-weight:600}
 .status{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--line)}
+.status button{padding:4px 10px;font-size:12.5px}
 .pill{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
-.pill.tpl{background:var(--warn-soft);color:var(--warn)}
 
 .mailrow{display:flex;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px}
 .mailrow span{color:var(--muted);width:58px;flex:none}
 .mailrow input{border:0;padding:4px 0;background:transparent;font-weight:600}
 .body{padding:16px}
-.body textarea{font-family:var(--letter);font-size:16.5px;line-height:1.6;border:0;padding:0;min-height:380px;resize:vertical;background:transparent}
+.body textarea{font-family:var(--letter);font-size:16px;line-height:1.6;border:0;padding:0;min-height:400px;resize:vertical;background:transparent}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line)}
 .foot .count{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .btns{display:flex;gap:8px;flex-wrap:wrap}
@@ -93,42 +107,55 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
 
 /* Tracker */
 .strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:14px}
-.strip div{padding:14px 18px;border-left:1px solid var(--line)}
+.strip div{padding:14px 18px;border-left:1px solid var(--line);min-width:0}
 .strip div:first-child{border-left:0}
 .strip b{display:block;font-family:var(--display);font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
 .strip span{font-size:12.5px;color:var(--muted)}
 .strip .due b{color:var(--warn)}
 @media (max-width:640px){.strip{grid-template-columns:repeat(2,minmax(0,1fr))}.strip div:nth-child(3){border-left:0}.strip div:nth-child(n+3){border-top:1px solid var(--line)}}
+
+.upcoming{background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.upcoming h3{margin:0;font-family:var(--display);font-size:17px;font-weight:600}
+.up{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--line)}
+.up:first-of-type{border-top:0;padding-top:0}
+.up .who{font-weight:600}
+.up .when{font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.up .soon{color:var(--accent);font-weight:600}
+
 .toolbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{font-size:13px;font-weight:500;padding:6px 12px;border-radius:999px;color:var(--muted)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .addrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:8px;align-items:end;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
-@media (max-width:640px){.addrow{grid-template-columns:1fr}}
+@media (max-width:640px){.addrow{grid-template-columns:minmax(0,1fr)}}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:14px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .card.due{border-color:var(--warn)}
 .card .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .card h4{font-family:var(--display);font-size:19px;font-weight:600;margin:0;line-height:1.2;overflow-wrap:anywhere}
 .card .sub{font-size:13.5px;color:var(--muted);overflow-wrap:anywhere}
-.card .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card .meta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 .card .meta label{font-size:12px;color:var(--muted);font-weight:500}
 .card .meta select,.card .meta input{padding:6px 8px;font-size:13.5px}
+.card .meta .full{grid-column:1/-1}
+.callbox{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.calltxt{font-size:13.5px;font-variant-numeric:tabular-nums}
+.calltxt b{font-weight:600}
 .card textarea{font-size:14px;min-height:72px;resize:vertical}
 .card .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .s-Drafted{background:var(--line);color:var(--muted)}
-.s-Sent{background:var(--cool-soft);color:var(--cool)}
-.s-Followed-up{background:var(--cool-soft);color:var(--cool)}
+.s-Sent,.s-Followed-up{background:var(--cool-soft);color:var(--cool)}
 .s-Call-booked,.s-Talked{background:var(--accent-soft);color:var(--accent)}
 .s-No-reply,.s-due{background:var(--warn-soft);color:var(--warn)}
-.empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:28px;text-align:left;display:flex;flex-direction:column;gap:6px}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:6px}
 .empty h3{font-family:var(--display);margin:0;font-size:20px}
 .empty p{margin:0;color:var(--muted);max-width:56ch}
 
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:500;z-index:20;max-width:calc(100% - 32px)}
 @media (prefers-reduced-motion:no-preference){.tab,button,.chip{transition:background .15s,color .15s}}
 </style>
-</head><body>
+</head>
+<body>
 <div class="wrap">
   <header>
     <div>
@@ -142,12 +169,12 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
   </header>
 
   <!-- WRITE VIEW -->
-  <div id="writeView" style="display:flex;flex-direction:column;gap:22px">
+  <div id="writeView" class="view">
     <div class="formula">
       <span><b>1</b>Shared connection up top</span>
       <span><b>2</b>Why you're reaching out</span>
       <span><b>3</b>One small ask</span>
-      <span><b>4</b>Specific times</span>
+      <span><b>4</b>Times in their time zone</span>
     </div>
     <div class="grid">
       <form id="f" autocomplete="off">
@@ -157,6 +184,7 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
           <label>Your name<input id="me" value="Hunter Stewart"></label>
           <label>About you <small>Finishes "I'm a..."</small>
             <input id="about" value="junior studying finance at Colorado State University"></label>
+          <label>Your time zone<select id="myTz"></select></label>
         </fieldset>
         <fieldset>
           <legend>Them</legend>
@@ -165,6 +193,7 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
             <label>Firm<input id="firm" value="Partners Group"></label>
           </div>
           <label>Their role<input id="role" value="Private Equity Associate"></label>
+          <label>Their time zone <small>Check their LinkedIn location</small><select id="theirTz"></select></label>
           <label>What you have in common <small>Finishes "I saw that..."</small>
             <input id="common" value="you graduated from CSU too"></label>
           <div class="row2">
@@ -175,27 +204,13 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
         <fieldset>
           <legend>The ask</legend>
           <label>The career you're interested in<input id="interest" value="private equity"></label>
-          <div class="row2">
-            <label>Call length
-              <select id="mins"><option>15</option><option>20</option><option selected>30</option></select></label>
-            <label>Time zone<input id="tz" value="Mountain Time"></label>
-          </div>
-          <label>Your availability <small>Five options works best</small></label>
-          <div class="slots">
-            <input id="s1" aria-label="Availability 1" value="Tuesday, Nov 10: 10am-1pm">
-            <input id="s2" aria-label="Availability 2" value="Wednesday, Nov 11: 2-5pm">
-            <input id="s3" aria-label="Availability 3" value="Thursday, Nov 12: 9am-12pm">
-            <input id="s4" aria-label="Availability 4" value="Friday, Nov 13: 11am-3pm">
-            <input id="s5" aria-label="Availability 5" value="Monday, Nov 16: 1-4pm">
-          </div>
+          <label>Call length
+            <select id="mins"><option>15</option><option>20</option><option selected>30</option></select></label>
+          <label>Your availability <small>Enter it in your time. The email shows it in theirs.</small></label>
+          <div class="slots" id="slots"></div>
           <label>Anything else to mention? <small>Optional: a deal they worked on, a post they wrote</small>
             <textarea id="extra" rows="2" placeholder="e.g. saw their post about the new Denver office"></textarea></label>
         </fieldset>
-        <div class="actions">
-          <button type="submit" class="primary" id="aiBtn">Write my email</button>
-          <button type="button" id="tplBtn" hidden>Quick template</button>
-        </div>
-        <p class="hint" id="aiHint">Builds your email from the formula above. Change any field and hit the button again.</p>
       </form>
 
       <section class="panel" aria-label="Your draft">
@@ -205,7 +220,10 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
           <button class="tab" role="tab" data-tab="coach" aria-selected="false">Why it works</button>
           <button class="tab" role="tab" data-tab="prep" aria-selected="false">Call prep</button>
         </div>
-        <div class="status"><span id="statusText">Your draft. Edit anything before you copy it.</span><span class="pill" id="srcPill">Your formula</span></div>
+        <div class="status">
+          <span id="statusText">Updates as you fill in the form</span>
+          <button type="button" class="ghost" id="rebuild" hidden>Rebuild from form</button>
+        </div>
         <div id="compose">
           <div class="mailrow"><span>To</span><input id="toLine" aria-label="To" readonly></div>
           <div class="mailrow"><span>Subject</span><input id="subj" aria-label="Subject"></div>
@@ -222,25 +240,28 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
         <div id="coach" class="list" hidden>
           <h3>Checklist for this email</h3>
           <ul class="checks" id="checks"></ul>
-          <div id="tipsWrap" hidden><h3>Claude's notes</h3><ul class="checks" id="tips"></ul></div>
         </div>
         <div id="prep" class="list" hidden>
           <h3>Questions to bring to the call</h3>
           <ol class="q" id="questions"></ol>
-          <p class="hint" id="prepHint"></p>
+          <p class="hint">Add one about something specific from their profile. End every call by asking who else you should talk to.</p>
         </div>
       </section>
     </div>
   </div>
 
   <!-- TRACKER VIEW -->
-  <div id="trackView" style="display:flex;flex-direction:column;gap:18px" hidden>
+  <div id="trackView" class="view" hidden>
     <div class="strip" aria-label="Summary">
       <div><b id="kOut">0</b><span>Reached out</span></div>
       <div><b id="kWait">0</b><span>Waiting on a reply</span></div>
       <div class="due"><b id="kDue">0</b><span>Follow-ups due</span></div>
       <div><b id="kCalls">0</b><span>Calls booked or done</span></div>
     </div>
+    <section class="upcoming" id="upcoming" hidden aria-label="Upcoming calls">
+      <h3>Upcoming calls</h3>
+      <div id="upList"></div>
+    </section>
     <form class="addrow" id="addForm" autocomplete="off">
       <label>Name<input id="aName" placeholder="Taylor Kim" required></label>
       <label>Firm<input id="aFirm" placeholder="Goldman Sachs"></label>
@@ -255,361 +276,16 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
         <button type="button" class="chip" data-f="calls" aria-pressed="false">Calls</button>
         <button type="button" class="chip" data-f="noreply" aria-pressed="false">No reply</button>
       </div>
-      <span class="hint" id="trackNote"></span>
+      <span class="hint">Saved on this device and browser.</span>
     </div>
     <div class="empty" id="emptyBox">
-      <h3 id="emptyTitle">Loading your tracker...</h3>
+      <h3 id="emptyTitle">No one in your tracker yet</h3>
       <p id="emptyText"></p>
     </div>
     <div class="cards" id="cards"></div>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
-
-<script>
-const $ = id => document.getElementById(id);
-const FIELDS = ["me","about","them","firm","role","common","tag","found","interest","mins","tz","s1","s2","s3","s4","s5","extra"];
-const SAVED = ["me","about","tz","s1","s2","s3","s4","s5"];
-const STATUSES = ["Drafted","Sent","Followed up","Call booked","Talked","No reply"];
-let tab = "email", view = "write";
-let draft = null, sample = null;
-
-/* ---------- helpers ---------- */
-function read(){ const o={}; FIELDS.forEach(k=>o[k]=$(k).value.trim()); o.slots=[o.s1,o.s2,o.s3,o.s4,o.s5].filter(Boolean); return o; }
-const first = n => (n||"there").split(/\s+/)[0];
-const pad = n => String(n).padStart(2,"0");
-function iso(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-const today = () => iso(new Date());
-function plusDays(s,n){ const d=new Date(s+"T12:00:00"); d.setDate(d.getDate()+n); return iso(d); }
-function fmt(s){ if(!s) return ""; return new Date(s+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
-let tt; function toast(m){ const el=$("toast"); el.textContent=m; el.hidden=false; clearTimeout(tt); tt=setTimeout(()=>el.hidden=true,2800); }
-
-/* ---------- views ---------- */
-function setView(v, push=true){
-  view = v;
-  $("writeView").hidden = v!=="write"; $("trackView").hidden = v!=="track";
-  $("navWrite").toggleAttribute("aria-current", v==="write"); $("navTrack").toggleAttribute("aria-current", v==="track");
-  if(v==="write") $("navWrite").setAttribute("aria-current","page"); else $("navTrack").setAttribute("aria-current","page");
-  if(push){ try{ history.replaceState(null,"", v==="track" ? "#tracker" : "#write"); }catch{} }
-}
-$("navWrite").onclick = ()=>setView("write");
-$("navTrack").onclick = ()=>setView("track");
-window.addEventListener("hashchange",()=>setView(location.hash==="#tracker"?"track":"write",false));
-
-/* ---------- writer ---------- */
-function templateDraft(f){
-  const slots = f.slots.map(s=>"- "+s).join("\n");
-  const subject = [f.firm, f.tag, "Chat"].filter(Boolean).join(" ");
-  const extra = f.extra ? ` I also ${/^(saw|read|noticed|heard)/i.test(f.extra)?"":"noticed "}${f.extra.replace(/\.$/,"")}, which I thought was really cool.` : "";
-  const email =
-`Hi ${first(f.them)},
-
-My name is ${f.me}, and I'm a ${f.about}. I came across your profile on ${f.found} and saw that you're a ${f.role} at ${f.firm}. I saw that ${f.common}, so I figured I'd reach out.${extra}
-
-I'm really passionate about a career in ${f.interest}, and I'd love to hear how you got to where you are. Would you have ${f.mins} minutes to chat sometime in the next couple of weeks?
-
-Here's my availability (${f.tz}):
-${slots}
-
-Happy to work around your schedule if none of those work.
-
-Thanks so much,
-${f.me}`;
-  const followup =
-`Hi ${first(f.them)},
-
-Just wanted to bump this in case it got buried. I'd still love ${f.mins} minutes to hear about your path to ${f.firm}.
-
-Here are a few times that work for me (${f.tz}):
-${slots}
-
-Totally understand if things are busy. Thanks again,
-${f.me}`;
-  return { subject, email, fsubject:"Re: "+subject, followup, tips:[], questions:[
-    `What made you choose ${f.firm} over other places you looked at?`,
-    `What does a normal week look like for a ${f.role}?`,
-    `What do you wish you'd known as a student going into ${f.interest}?`,
-    `What skills or experiences set candidates apart for roles like yours?`,
-    `Is there anyone else you'd recommend I talk to?`
-  ], source:"template" };
-}
-
-function render(){
-  const f = read();
-  $("toLine").value = f.them + (f.firm ? `, ${f.firm}` : "");
-  const isFollow = tab==="followup";
-  $("compose").hidden = !(tab==="email"||isFollow);
-  $("coach").hidden = tab!=="coach";
-  $("prep").hidden = tab!=="prep";
-  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===tab));
-  if(!draft) return;
-  if(!$("compose").hidden){
-    $("subj").value = isFollow ? draft.fsubject : draft.subject;
-    $("bodyText").value = isFollow ? draft.followup : draft.email;
-    updateCount();
-  }
-  if(tab==="coach") renderChecks();
-  if(tab==="prep"){
-    $("questions").replaceChildren(...draft.questions.map(q=>{const li=document.createElement("li"); li.textContent=q; return li;}));
-    $("prepHint").textContent = draft.source==="ai" ? "Written by Claude for this person. End every call by asking who else you should talk to." : "Starter questions. Add one about something specific from their profile.";
-  }
-  const ai = draft.source==="ai";
-  $("srcPill").textContent = "Your formula";
-  $("statusText").textContent = ai ? "Written by Claude. Edit anything before you copy it." : "Your draft. Edit anything before you copy it.";
-}
-function words(t){ return (t.match(/\b[\w'’-]+\b/g)||[]).length; }
-function updateCount(){ const n=words($("bodyText").value); $("count").textContent = `${n} words` + (n>170 ? " · try to trim under 150" : ""); }
-$("subj").addEventListener("input",()=>{ if(draft) draft[tab==="followup"?"fsubject":"subject"]=$("subj").value; });
-$("bodyText").addEventListener("input",()=>{ if(!draft) return; draft[tab==="followup"?"followup":"email"]=$("bodyText").value; updateCount(); });
-
-function renderChecks(){
-  const f = read(), s = draft.subject.toLowerCase(), e = draft.email, n = words(e);
-  const items = [
-    [f.tag && s.includes(f.tag.toLowerCase()), "Shared connection in the subject", "People open emails that show a link to them right away."],
-    [/\b(15|20|30)\s*(min|minutes)\b/i.test(e), "One small, specific ask", "A short call is easy to say yes to. Big asks get ignored."],
-    [f.slots.length>=3 && f.slots.filter(x=>e.includes(x)).length>=3, "Specific times listed", `${f.slots.length} options given. They just pick one and reply.`],
-    [n<=170, "Short enough to read on a phone", `${n} words. Under 150 is the sweet spot.`],
-    [!!f.found && !!f.role, "Shows you looked them up", "Mentioning their role and where you found them proves it isn't a mass email."],
-  ];
-  $("checks").replaceChildren(...items.map(([ok,t,d])=>{
-    const li=document.createElement("li");
-    li.innerHTML=`<span class="mark ${ok?"":"no"}">${ok?"✓":"!"}</span><div><strong></strong><small></small></div>`;
-    li.querySelector("strong").textContent=t; li.querySelector("small").textContent=d; return li;
-  }));
-  $("tipsWrap").hidden = !draft.tips.length;
-  $("tips").replaceChildren(...draft.tips.map(t=>{const li=document.createElement("li"); li.innerHTML=`<span class="mark">•</span><div></div>`; li.querySelector("div").textContent=t; return li;}));
-}
-
-function promptFor(f){
-  return `You write cold networking emails for college students reaching out to professionals for a short informational call. Write in a plain, friendly, confident student voice. Never use em dashes. No buzzwords, no flattery, no "I hope this email finds you well".
-
-Follow this proven formula:
-1. Subject line: "<Firm> <shared tag> Chat" style, short, shows the shared connection.
-2. Open with who the student is and how they found the person, then the shared connection.
-3. One sentence on why they're interested in this career. Use the optional detail if given, naturally.
-4. One clear ask: a ${f.mins}-minute call.
-5. List ALL the availability slots exactly as written, as a bulleted list with "- ", noting the time zone.
-6. Offer to work around their schedule. Sign off with the student's name.
-Keep the first email under 150 words, not counting the availability list.
-
-Also write a short follow-up to send about a week later if there's no reply (under 70 words, re-list the slots), 3 short coaching notes on why this specific email works or what the student could personalize further, and 5 smart questions for the call tailored to this person's role and firm.
-
-Details:
-Student name: ${f.me}
-Student is a: ${f.about}
-Recipient: ${f.them}, ${f.role} at ${f.firm}
-Shared connection: ${f.common}
-Subject tag: ${f.tag}
-Found them on: ${f.found}
-Career interest: ${f.interest}
-Time zone: ${f.tz}
-Availability:
-${f.slots.map(s=>"- "+s).join("\n")}
-Optional detail: ${f.extra || "(none)"}
-
-Reply with only JSON in this shape:
-{"subject":"...","email":"...","followup_subject":"...","followup":"...","tips":["...","...","..."],"questions":["...","...","...","...","..."]}`;
-}
-
-const ERR = {
-  not_granted:"Claude isn't allowed on this page, so here's the quick template instead.",
-  sampling_disabled:"Claude isn't available on this account, so here's the quick template instead.",
-  rate_limited:"Too many requests right now. Wait a minute and try again.",
-  session_expired:"Sign in to Claude again, then retry.",
-  invalid_json:"Claude's reply came back garbled. Hit the button again.",
-  refused:"Claude wouldn't write this one. Try rewording the details.",
-};
-const HIDE = ["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"];
-
-$("f").addEventListener("submit", async ev=>{
-  ev.preventDefault(); save();
-  const f = read();
-  if(!sample){ draft = templateDraft(f); render(); toast("Draft ready"); return; }
-  const btn=$("aiBtn"); btn.disabled=true; btn.textContent="Writing...";
-  $("statusText").textContent="Claude is writing your email. This takes 10 to 30 seconds.";
-  try{
-    const r = await sample.json(f);
-    if(!r || typeof r.email!=="string" || typeof r.subject!=="string") throw {code:"invalid_json"};
-    draft = { subject:r.subject, email:r.email.replace(/—/g,", "), fsubject:r.followup_subject||("Re: "+r.subject),
-      followup:String(r.followup||"").replace(/—/g,", "), tips:Array.isArray(r.tips)?r.tips.map(String).slice(0,4):[],
-      questions:Array.isArray(r.questions)&&r.questions.length?r.questions.map(String).slice(0,6):templateDraft(f).questions, source:"ai" };
-    tab="email"; render(); toast("Draft ready");
-  }catch(e){
-    const code = e && e.code || "upstream_error";
-    if(code==="cancelled"){ render(); }
-    else {
-      if(HIDE.includes(code)){ sample=null; draft=templateDraft(f); render(); }
-      else render();
-      toast(ERR[code] || "Something went wrong reaching Claude. Try again in a moment.");
-    }
-  }finally{ btn.disabled=false; btn.textContent = sample ? "Write it with Claude" : "Write it (template)"; }
-});
-
-$("tplBtn").addEventListener("click",()=>{ save(); draft=templateDraft(read()); render(); toast("Template draft updated"); });
-document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{ tab=b.dataset.tab; render(); }));
-$("f").addEventListener("input",()=>{ $("exNote").hidden=true; if(tab==="coach"&&draft) renderChecks(); });
-
-async function copy(text){
-  try{ await navigator.clipboard.writeText(text); toast("Copied"); }
-  catch{ const t=$("bodyText"); t.focus(); t.select(); toast("Press Ctrl+C or Cmd+C to copy"); }
-}
-$("copySubj").addEventListener("click",()=>copy($("subj").value));
-$("copyBody").addEventListener("click",()=>copy($("bodyText").value));
-
-function save(){ try{ const o={}; SAVED.forEach(k=>o[k]=$(k).value); localStorage.setItem("ccw-me",JSON.stringify(o)); }catch{} }
-function restore(){ try{ const o=JSON.parse(localStorage.getItem("ccw-me")||"null"); if(o) SAVED.forEach(k=>{ if(typeof o[k]==="string") $(k).value=o[k]; }); }catch{} }
-
-/* ---------- tracker ---------- */
-let col = null, contacts = [], tState = "loading", filter = "all";
-const rows = new Map();     // id -> {el, refs}
-const queues = {};
-
-const isDue = c => (c.status==="Sent") && c.followUpOn && c.followUpOn <= today();
-const FILTERS = {
-  all: ()=>true,
-  due: isDue,
-  wait: c => c.status==="Sent" || c.status==="Followed up",
-  calls: c => c.status==="Call booked" || c.status==="Talked",
-  noreply: c => c.status==="No reply",
-};
-
-const LS="got30-contacts";
-function loadLocal(){ try{ const a=JSON.parse(localStorage.getItem(LS)||"[]"); return Array.isArray(a)?a:[]; }catch{ return []; } }
-function saveLocal(){ try{ localStorage.setItem(LS, JSON.stringify(contacts)); }catch{ toast("Couldn't save. Your browser may be blocking storage."); } }
-function initTracker(){ contacts = loadLocal().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); col = true; tState = "ready"; renderTracker(); }
-
-function renderTracker(){
-  $("navCount").textContent = contacts.length;
-  const ready = tState==="ready";
-  $("aBtn").disabled = !col; $("logBtn").disabled = !col;
-  const out = contacts.filter(c=>c.status!=="Drafted").length;
-  $("kOut").textContent = out;
-  $("kWait").textContent = contacts.filter(FILTERS.wait).length;
-  $("kDue").textContent = contacts.filter(isDue).length;
-  $("kCalls").textContent = contacts.filter(FILTERS.calls).length;
-
-  const shown = contacts.filter(FILTERS[filter]);
-  const box = $("emptyBox");
-  if(tState==="off"){ box.hidden=false; $("emptyTitle").textContent="Sign in to Claude to use the tracker"; $("emptyText").textContent="Your contacts save to your Claude account, so the tracker only works when you're signed in. The email writer still works."; }
-  else if(tState==="error"){ box.hidden=false; $("emptyTitle").textContent="Couldn't load your tracker"; $("emptyText").textContent="Refresh the page to try again. Your contacts are still saved."; }
-  else if(tState==="loading"){ box.hidden=false; $("emptyTitle").textContent="Loading your tracker..."; $("emptyText").textContent=""; }
-  else if(tState==="slow" && !contacts.length){ box.hidden=false; $("emptyTitle").textContent="Still connecting..."; $("emptyText").textContent="Your tracker is taking a while to load. Check your connection."; }
-  else if(!contacts.length){ box.hidden=false; $("emptyTitle").textContent="No one in your tracker yet"; $("emptyText").textContent="After you send an email, hit “I sent it: add to tracker” on the Write tab. Or add someone above. Each contact gets a follow-up reminder a week out and a spot for notes."; }
-  else if(!shown.length){ box.hidden=false; $("emptyTitle").textContent="Nobody here right now"; $("emptyText").textContent="No contacts match this filter."; }
-  else box.hidden=true;
-  $("trackNote").textContent = tState==="slow" && contacts.length ? "May be out of date. Still connecting." : "Saved on this device and browser.";
-
-  // reconcile cards
-  const seen = new Set();
-  contacts.forEach(c=>{
-    seen.add(c.id);
-    let r = rows.get(c.id);
-    if(!r){ r = makeCard(c.id); rows.set(c.id,r); }
-    fillCard(r,c);
-    r.el.hidden = !FILTERS[filter](c);
-  });
-  for(const [id,r] of rows){ if(!seen.has(id)){ r.el.remove(); rows.delete(id); } }
-  const cards=$("cards"), order=contacts.map(c=>rows.get(c.id).el);
-  if(order.some((el,i)=>cards.children[i]!==el)) order.forEach(el=>cards.appendChild(el));
-}
-
-function makeCard(id){
-  const el=document.createElement("article"); el.className="card";
-  el.innerHTML=`
-    <div class="top"><div><h4></h4><div class="sub"></div></div><span class="pill"></span></div>
-    <div class="meta">
-      <label>Status<select class="st">${STATUSES.map(s=>`<option>${s}</option>`).join("")}</select></label>
-      <label>Follow up on<input type="date" class="fu"></label>
-    </div>
-    <div class="sub dates"></div>
-    <textarea class="notes" aria-label="Notes" placeholder="Notes: what you talked about, who they referred you to, next steps"></textarea>
-    <div class="row">
-      <button type="button" class="ghost draftFu">Write follow-up</button>
-      <button type="button" class="ghost danger del">Remove</button>
-    </div>`;
-  const q=s=>el.querySelector(s);
-  const r={el, h:q("h4"), sub:q(".sub"), pill:q(".pill"), st:q(".st"), fu:q(".fu"), dates:q(".dates"), notes:q(".notes"), del:q(".del"), draftFu:q(".draftFu"), c:null};
-  r.st.id="st-"+id; r.fu.id="fu-"+id; r.notes.id="nt-"+id;
-  r.st.onchange=()=>{
-    const s=r.st.value, patch={status:s};
-    if((s==="Sent") && !r.c.sentOn){ patch.sentOn=today(); patch.followUpOn=plusDays(today(),7); }
-    if(s==="Followed up"){ patch.followedUpOn=today(); patch.followUpOn=plusDays(today(),7); }
-    write(id,patch);
-  };
-  r.fu.onchange=()=>write(id,{followUpOn:r.fu.value||null});
-  let nt; r.notes.oninput=()=>{ clearTimeout(nt); nt=setTimeout(()=>write(id,{notes:r.notes.value}),800); };
-  r.notes.onblur=()=>{ clearTimeout(nt); if(r.c && r.notes.value!==(r.c.notes||"")) write(id,{notes:r.notes.value}); };
-  let armed=null;
-  r.del.onclick=()=>{
-    if(!armed){ r.del.textContent="Tap again to remove"; armed=setTimeout(()=>{armed=null; r.del.textContent="Remove";},4000); return; }
-    clearTimeout(armed); armed=null;
-    contacts = contacts.filter(x=>x.id!==id); saveLocal(); renderTracker();
-  };
-  r.draftFu.onclick=()=>{
-    const c=r.c;
-    ["them","firm","role","common","tag","found","interest"].forEach(k=>{ const key=k==="them"?"name":k; if(c[key]) $(k).value=c[key]; });
-    $("exNote").hidden=true;
-    draft=templateDraft(read()); tab="followup"; render(); setView("write"); window.scrollTo({top:0});
-    toast(`Follow-up drafted for ${c.name}`);
-  };
-  return r;
-}
-
-function fillCard(r,c){
-  r.c=c;
-  r.h.textContent=c.name||"Unnamed";
-  r.sub.textContent=[c.role,c.firm].filter(Boolean).join(" at ");
-  const due=isDue(c);
-  r.el.classList.toggle("due",due);
-  r.pill.textContent = due ? "Follow-up due" : c.status;
-  r.pill.className = "pill " + (due ? "s-due" : "s-"+String(c.status||"").replace(/\s+/g,"-"));
-  if(document.activeElement!==r.st) r.st.value=c.status||"Sent";
-  if(document.activeElement!==r.fu) r.fu.value=c.followUpOn||"";
-  if(document.activeElement!==r.notes) r.notes.value=c.notes||"";
-  const bits=[];
-  if(c.sentOn) bits.push("Sent "+fmt(c.sentOn));
-  if(c.followedUpOn) bits.push("Followed up "+fmt(c.followedUpOn));
-  r.dates.textContent=bits.join(" · ");
-  r.dates.hidden=!bits.length;
-}
-
-function write(id,patch){
-  const c = contacts.find(x=>x.id===id); if(!c) return;
-  Object.assign(c, patch, {updatedAt:Date.now()}); saveLocal(); renderTracker();
-}
-
-async function addContact(c){
-  const key=(c.name+"|"+(c.firm||"")).toLowerCase();
-  if(contacts.some(x=>((x.name||"")+"|"+(x.firm||"")).toLowerCase()===key)){ toast(`${c.name} is already in your tracker`); return false; }
-  const now=Date.now(), id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():String(now)+Math.random().toString(36).slice(2);
-  contacts.unshift(Object.assign({notes:""},c,{id,createdAt:now,updatedAt:now}));
-  saveLocal(); renderTracker(); toast(`Added ${c.name} to your tracker`); return true;
-}
-
-$("logBtn").onclick=async()=>{
-  const f=read();
-  if(!f.them){ toast("Add their name first"); return; }
-  const ok = await addContact({name:f.them, firm:f.firm, role:f.role, common:f.common, tag:f.tag, found:f.found, interest:f.interest,
-    status:"Sent", sentOn:today(), followUpOn:plusDays(today(),7)});
-  if(ok) $("navCount").animate?.([{transform:"scale(1.25)"},{transform:"scale(1)"}],{duration:300});
-};
-$("addForm").addEventListener("submit",async ev=>{
-  ev.preventDefault();
-  const name=$("aName").value.trim(); if(!name) return;
-  const ok=await addContact({name, firm:$("aFirm").value.trim(), role:$("aRole").value.trim(), status:"Drafted"});
-  if(ok){ $("aName").value=""; $("aFirm").value=""; $("aRole").value=""; $("aName").focus(); }
-});
-document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
-  filter=b.dataset.f; document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderTracker();
-});
-
-/* ---------- boot ---------- */
-restore();
-draft = templateDraft(read());
-render();
-setView(location.hash==="#tracker" ? "track" : "write", false);
-renderTracker();
-sample = null;
-initTracker();
-</script>
-</body></html>
+<script src="app.js"></script>
+</body>
+</html>
