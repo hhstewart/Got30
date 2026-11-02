@@ -42,6 +42,13 @@ header p{margin:6px 0 0;color:var(--muted);max-width:60ch}
 .nav .n{font-size:12px;font-variant-numeric:tabular-nums;padding:0 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
 .nav button[aria-current="page"] .n{background:var(--accent-ink);color:var(--accent)}
 .view{display:flex;flex-direction:column;gap:20px}
+.headr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.acct{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.acct form{gap:12px}
+.acct h3{font-family:var(--display);font-size:19px;margin:0 0 2px;font-weight:600}
+.acctin{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.acctin p{margin:0;overflow-wrap:anywhere}
+.hint.err{color:var(--warn)}
 .formula{display:flex;flex-wrap:wrap;gap:8px}
 .formula span{font-size:12.5px;font-weight:500;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--surface)}
 .formula b{color:var(--accent);font-weight:600;margin-right:4px}
@@ -164,11 +171,36 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
       <h1>Got 30?</h1>
       <p>Write a short, personal email that's easy to say yes to, then keep track of everyone you reach out to.</p>
     </div>
-    <nav class="nav" aria-label="Views">
-      <button type="button" id="navWrite" aria-current="page">Write</button>
-      <button type="button" id="navTrack">Tracker <span class="n" id="navCount">0</span></button>
-    </nav>
+    <div class="headr">
+      <nav class="nav" aria-label="Views">
+        <button type="button" id="navWrite" aria-current="page">Write</button>
+        <button type="button" id="navTrack">Tracker <span class="n" id="navCount">0</span></button>
+      </nav>
+      <button type="button" class="ghost" id="acctBtn" hidden>Sign in</button>
+    </div>
   </header>
+
+  <section class="acct" id="acctPanel" hidden aria-label="Account">
+    <form id="acctForm" autocomplete="on">
+      <div>
+        <h3>Sign in to sync your tracker</h3>
+        <p class="hint">Your contacts follow you between the website, the Chrome sidebar, and your phone. Only you can see them.</p>
+      </div>
+      <div class="row2">
+        <label>Email<input id="acctEmailIn" type="email" autocomplete="email" required></label>
+        <label>Password <small>At least 6 characters</small><input id="acctPass" type="password" autocomplete="current-password" minlength="6" required></label>
+      </div>
+      <div class="actions">
+        <button type="submit" class="primary" id="signInBtn">Sign in</button>
+        <button type="button" id="signUpBtn">Create account</button>
+        <span class="hint" id="acctMsg" role="status"></span>
+      </div>
+    </form>
+    <div id="acctIn" class="acctin" hidden>
+      <p>Signed in as <b id="acctEmail"></b>. Your tracker syncs everywhere you sign in.</p>
+      <button type="button" class="ghost" id="signOutBtn">Sign out</button>
+    </div>
+  </section>
 
   <!-- WRITE VIEW -->
   <div id="writeView" class="view">
@@ -285,7 +317,7 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
         <button type="button" class="chip" data-f="calls" aria-pressed="false">Calls</button>
         <button type="button" class="chip" data-f="noreply" aria-pressed="false">No reply</button>
       </div>
-      <span class="hint">Saved on this device and browser.</span>
+      <span class="hint" id="syncNote">Saved on this device and browser.</span>
     </div>
     <div class="empty" id="emptyBox">
       <h3 id="emptyTitle">No one in your tracker yet</h3>
@@ -295,6 +327,8 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

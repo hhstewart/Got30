@@ -355,7 +355,7 @@ function makeCard(id){
   r.del.onclick=()=>{
     if(!armed){ r.del.textContent="Tap again to remove"; armed=setTimeout(()=>{armed=null; r.del.textContent="Remove";},4000); return; }
     clearTimeout(armed); armed=null;
-    contacts = contacts.filter(x=>x.id!==id); saveLocal(); renderTracker();
+    contacts = contacts.filter(x=>x.id!==id); persistDelete(id); renderTracker();
   };
   r.draftFu.onclick=()=>{
     const c=r.c;
@@ -403,15 +403,15 @@ function fillCard(r,c){
 
 function write(id, patch, quiet){
   const c=contacts.find(x=>x.id===id); if(!c) return;
-  Object.assign(c, patch, {updatedAt:Date.now()}); saveLocal();
+  Object.assign(c, patch, {updatedAt:Date.now()}); persist(c);
   if(!quiet) renderTracker();
 }
 function addContact(c){
   const key=(c.name+"|"+(c.firm||"")).toLowerCase();
   if(contacts.some(x=>((x.name||"")+"|"+(x.firm||"")).toLowerCase()===key)){ toast(`${c.name} is already in your tracker`); return false; }
   const now=Date.now(), id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():String(now)+Math.random().toString(36).slice(2);
-  contacts.unshift(Object.assign({notes:"", theirTz:myTz(), mins:"30"}, c, {id, createdAt:now, updatedAt:now}));
-  saveLocal(); renderTracker(); toast(`Added ${c.name} to your tracker`); return true;
+  const nc = Object.assign({notes:"", theirTz:myTz(), mins:"30"}, c, {id, createdAt:now, updatedAt:now});
+  contacts.unshift(nc); persist(nc); renderTracker(); toast(`Added ${c.name} to your tracker`); return true;
 }
 
 $("logBtn").onclick=()=>{
@@ -505,6 +505,113 @@ async function grabLinkedIn(){
 }
 if(isExtension){ $("grabBox").hidden = false; $("grabBtn").onclick = grabLinkedIn; }
 
+/* ---------- accounts and sync (Supabase) ---------- */
+const CFG = window.GOT30_CONFIG || {};
+const sb = (CFG.supabaseUrl && CFG.supabaseKey && window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey) : null;
+let user = null, lastWrite = 0;
+const cloud = () => !!(sb && user);
+const byNewest = (a,b) => (b.createdAt||0) - (a.createdAt||0);
+const chains = {};
+
+function persist(c){
+  if(!cloud()){ saveLocal(); return; }
+  lastWrite = Date.now(); setSync("saving");
+  const row = { id:c.id, user_id:user.id, data:c, updated_at:new Date().toISOString() };
+  chains[c.id] = (chains[c.id] || Promise.resolve())
+    .then(()=>sb.from("contacts").upsert(row))
+    .then(({error})=>setSync(error ? "error" : "ok"))
+    .catch(()=>setSync("error"));
+}
+function persistDelete(id){
+  if(!cloud()){ saveLocal(); return; }
+  lastWrite = Date.now();
+  (chains[id] || Promise.resolve()).then(()=>sb.from("contacts").delete().eq("id", id))
+    .then(({error})=>setSync(error ? "error" : "ok")).catch(()=>setSync("error"));
+}
+async function cloudLoad(){
+  const { data, error } = await sb.from("contacts").select("id,data");
+  if(error) throw error;
+  return data.map(r=>Object.assign({}, r.data, { id:r.id })).sort(byNewest);
+}
+
+function setSync(state){
+  const n = $("syncNote"); n.classList.toggle("err", state==="error");
+  n.textContent =
+    state==="loading" ? "Syncing..." :
+    state==="saving"  ? "Saving..." :
+    state==="ok"      ? `Synced to ${user.email}` :
+    state==="error"   ? "Couldn't sync. Check your connection, then reopen the tracker." :
+    sb ? "Saved on this device only. Sign in to sync across devices." : "Saved on this device and browser.";
+}
+
+function renderAccount(){
+  $("acctBtn").textContent = user ? "Account" : "Sign in";
+  $("acctForm").hidden = !!user; $("acctIn").hidden = !user;
+  if(user) $("acctEmail").textContent = user.email || "your account";
+}
+function acctMsg(t, bad){ $("acctMsg").textContent = t; $("acctMsg").classList.toggle("err", !!bad); }
+
+async function onUser(u){
+  user = u; renderAccount();
+  if(!u){ contacts = loadLocal().sort(byNewest); setSync(); renderTracker(); return; }
+  setSync("loading");
+  try{
+    const remote = await cloudLoad();
+    const ids = new Set(remote.map(c=>c.id));
+    const toMove = loadLocal().filter(c=>!ids.has(c.id));
+    contacts = remote.concat(toMove).sort(byNewest);
+    renderTracker();
+    if(toMove.length){
+      const res = await Promise.all(toMove.map(c=>sb.from("contacts").upsert({ id:c.id, user_id:u.id, data:c })));
+      if(res.every(r=>!r.error)){ try{ localStorage.removeItem(LS); }catch{} toast(`Moved ${toMove.length} contact${toMove.length>1?"s":""} into your account`); }
+      else throw new Error("move failed");
+    }
+    setSync("ok");
+  }catch{ setSync("error"); renderTracker(); }
+}
+
+async function startAuth(){
+  setSync();
+  if(!sb) return;                                  // no Supabase settings yet: device-only mode
+  $("acctBtn").hidden = false;
+  $("acctBtn").onclick = ()=>{ $("acctPanel").hidden = !$("acctPanel").hidden; if(!$("acctPanel").hidden && !user) $("acctEmailIn").focus(); };
+  const go = async signUp=>{
+    const email = $("acctEmailIn").value.trim(), password = $("acctPass").value;
+    if(!email || password.length < 6){ acctMsg("Enter your email and a password of at least 6 characters.", true); return; }
+    $("signInBtn").disabled = $("signUpBtn").disabled = true; acctMsg(signUp ? "Creating your account..." : "Signing in...");
+    try{
+      if(signUp){
+        const opts = /^https?:/.test(location.href) ? { emailRedirectTo: location.href.split("#")[0] } : {};
+        const { data, error } = await sb.auth.signUp({ email, password, options: opts });
+        if(error) acctMsg(/registered|exists/i.test(error.message) ? "That email already has an account. Hit Sign in." : error.message, true);
+        else if(!data.session) acctMsg("Check your email for a confirmation link, then come back and sign in.");
+        else { acctMsg(""); $("acctPanel").hidden = true; toast("Account created"); }
+      } else {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if(error) acctMsg(/confirm/i.test(error.message) ? "Confirm your email first, then sign in." : "Wrong email or password.", true);
+        else { acctMsg(""); $("acctPanel").hidden = true; toast("Signed in"); }
+      }
+    }catch{ acctMsg("Couldn't reach the server. Check your connection.", true); }
+    finally{ $("signInBtn").disabled = $("signUpBtn").disabled = false; }
+  };
+  $("acctForm").addEventListener("submit", e=>{ e.preventDefault(); go(false); });
+  $("signUpBtn").onclick = ()=>go(true);
+  $("signOutBtn").onclick = async()=>{ await sb.auth.signOut().catch(()=>{}); $("acctPanel").hidden = true; toast("Signed out"); };
+
+  sb.auth.onAuthStateChange((_event, session)=>{
+    const u = session ? session.user : null;
+    if((u && u.id) !== (user && user.id)) setTimeout(()=>onUser(u), 0);
+  });
+  try{ const { data } = await sb.auth.getSession(); await onUser(data.session ? data.session.user : null); }catch{ onUser(null); }
+
+  // Pick up changes made on your other devices when you come back to this one
+  document.addEventListener("visibilitychange", async()=>{
+    if(document.hidden || !cloud() || Date.now()-lastWrite < 4000) return;
+    try{ contacts = await cloudLoad(); renderTracker(); setSync("ok"); }catch{}
+  });
+}
+
 /* ---------- start ---------- */
 const saved = loadSettings();
 fillZones($("myTz"), saved?.myTz || BROWSER_TZ);
@@ -514,3 +621,4 @@ buildSlots(Array.isArray(saved?.slots) && saved.slots.length===5 ? saved.slots :
 contacts = loadLocal().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
 regenerate();
 renderTracker();
+startAuth();
