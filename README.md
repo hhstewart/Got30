@@ -28,6 +28,12 @@ This one folder is both the website and the Chrome extension. It's free: no AI, 
 
 After you get a new version, replace the folder's files and click the refresh arrow on Got 30? in `chrome://extensions`.
 
+## Using it
+
+- **Fill in from LinkedIn (extension only):** open someone's LinkedIn profile, open the sidebar, and click "Fill in from this LinkedIn profile." It reads their name, role, firm, location (for the time zone), and whether you went to the same school. Always double-check it before sending. LinkedIn changes its pages often, so if it stops working, tell Claude.
+- **Open in Gmail:** opens a Gmail draft with the subject, email, and their address already filled in.
+- **Calendar invite:** in the tracker, set the call time and add their email. "Add to Google Calendar" opens the event with them as a guest. Hit Save, then Send.
+
 ## Good to know
 
 - The tracker saves in each place separately. Your extension tracker and your website tracker are two different lists.

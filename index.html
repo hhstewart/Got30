@@ -58,6 +58,8 @@ input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);bo
 input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
 @media (max-width:400px){.row2{grid-template-columns:minmax(0,1fr)}}
+.grab{display:flex;flex-direction:column;gap:6px;background:var(--accent-soft);border-radius:10px;padding:10px}
+.grab small{font-size:12.5px;color:var(--muted)}
 .example-note{font-size:12.5px;color:var(--warn);background:var(--warn-soft);border-radius:8px;padding:8px 11px;margin:0}
 
 .slots{display:flex;flex-direction:column;gap:8px}
@@ -188,11 +190,17 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
         </fieldset>
         <fieldset>
           <legend>Them</legend>
+          <div class="grab" id="grabBox" hidden>
+            <button type="button" class="primary" id="grabBtn">Fill in from this LinkedIn profile</button>
+            <small>Open their LinkedIn profile in this tab, then click.</small>
+          </div>
           <div class="row2">
             <label>Their name<input id="them" value="Jordan Lee"></label>
             <label>Firm<input id="firm" value="Partners Group"></label>
           </div>
           <label>Their role<input id="role" value="Private Equity Associate"></label>
+          <label>Their email <small>Optional. Fills in Gmail and the calendar invite.</small>
+            <input id="email" type="email" placeholder="jordan.lee@partnersgroup.com"></label>
           <label>Their time zone <small>Check their LinkedIn location</small><select id="theirTz"></select></label>
           <label>What you have in common <small>Finishes "I saw that..."</small>
             <input id="common" value="you graduated from CSU too"></label>
@@ -233,6 +241,7 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
             <div class="btns">
               <button type="button" class="ghost" id="copySubj">Copy subject</button>
               <button type="button" class="ghost" id="copyBody">Copy email</button>
+              <a class="btnlink" id="gmailBtn" target="_blank" rel="noopener">Open in Gmail</a>
               <button type="button" class="ghost primary" id="logBtn">I sent it: add to tracker</button>
             </div>
           </div>

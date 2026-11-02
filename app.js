@@ -110,7 +110,8 @@ $("navWrite").onclick = ()=>setView("write");
 $("navTrack").onclick = ()=>setView("track");
 
 /* ---------- writer ---------- */
-const FIELDS = ["me","about","myTz","them","firm","role","theirTz","common","tag","found","interest","mins","extra"];
+const FIELDS = ["me","about","myTz","them","firm","role","email","theirTz","common","tag","found","interest","mins","extra"];
+const gmailUrl = (to, su, body) => "https://mail.google.com/mail/?" + new URLSearchParams({ view:"cm", fs:"1", tf:"1", to:to||"", su, body }).toString();
 let tab="email", draft=null, edited=false;
 const first = n => (n||"there").split(/\s+/)[0];
 
@@ -175,6 +176,7 @@ function render(){
     if(document.activeElement!==$("subj")) $("subj").value = isFollow ? draft.fsubject : draft.subject;
     if(document.activeElement!==$("bodyText")) $("bodyText").value = isFollow ? draft.followup : draft.email;
     updateCount();
+    updateGmail();
   }
   if(tab==="coach") renderChecks(f);
   if(tab==="prep") $("questions").replaceChildren(...draft.questions.map(q=>{ const li=document.createElement("li"); li.textContent=q; return li; }));
@@ -182,8 +184,10 @@ function render(){
 const words = t => (t.match(/\b[\w'’-]+\b/g)||[]).length;
 function updateCount(){ const n=words($("bodyText").value); $("count").textContent = `${n} words` + (n>170 ? " · try to trim under 150" : ""); }
 
-$("subj").addEventListener("input",()=>{ draft[tab==="followup"?"fsubject":"subject"]=$("subj").value; edited=true; $("rebuild").hidden=false; });
-$("bodyText").addEventListener("input",()=>{ draft[tab==="followup"?"followup":"email"]=$("bodyText").value; edited=true; $("rebuild").hidden=false; updateCount(); });
+function updateGmail(){ $("gmailBtn").href = gmailUrl($("email").value.trim(), $("subj").value, $("bodyText").value); }
+$("subj").addEventListener("input",()=>{ draft[tab==="followup"?"fsubject":"subject"]=$("subj").value; edited=true; $("rebuild").hidden=false; updateGmail(); });
+$("bodyText").addEventListener("input",()=>{ draft[tab==="followup"?"followup":"email"]=$("bodyText").value; edited=true; $("rebuild").hidden=false; updateCount(); updateGmail(); });
+$("gmailBtn").addEventListener("click",()=>{ updateGmail(); setTimeout(()=>toast("After you send it, hit “I sent it” to track it"),400); });
 $("rebuild").onclick = ()=>{ regenerate(); toast("Rebuilt from the form"); };
 
 function renderChecks(f){
@@ -252,6 +256,7 @@ function gcalUrl(c){
   const z=d=>d.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
   const q=new URLSearchParams({ action:"TEMPLATE", text:`Coffee chat: ${c.name}${c.firm?` (${c.firm})`:""}`, dates:`${z(s)}/${z(e)}`,
     details:`Networking call. ${[c.role,c.firm].filter(Boolean).join(" at ")}\nNotes: ${c.notes||""}` });
+  if(c.email) q.set("add", c.email);   // adds them as a guest, so saving sends the invite
   return "https://calendar.google.com/calendar/render?"+q.toString();
 }
 
@@ -299,6 +304,7 @@ function makeCard(id){
     <div class="meta">
       <label>Status<select class="st">${STATUSES.map(s=>`<option>${s}</option>`).join("")}</select></label>
       <label>Follow up on<input type="date" class="fu"></label>
+      <label class="full">Their email<input type="email" class="em" placeholder="Add it to send a calendar invite"></label>
     </div>
     <div class="sub dates"></div>
     <div class="callbox">
@@ -309,6 +315,7 @@ function makeCard(id){
       </div>
       <div class="calltxt"></div>
       <div><a class="btnlink gcal" target="_blank" rel="noopener">Add to Google Calendar</a></div>
+      <small class="hint gnote"></small>
     </div>
     <textarea class="notes" aria-label="Notes" placeholder="Notes: what you talked about, who they referred you to, next steps"></textarea>
     <div class="row">
@@ -317,8 +324,9 @@ function makeCard(id){
     </div>`;
   const q=s=>el.querySelector(s);
   const r={el, h:q("h4"), sub:q(".sub"), pill:q(".pill"), st:q(".st"), fu:q(".fu"), dates:q(".dates"), notes:q(".notes"),
-    box:q(".callbox"), ct:q(".ct"), ctz:q(".ctz"), ttz:q(".ttz"), calltxt:q(".calltxt"), gcal:q(".gcal"), del:q(".del"), draftFu:q(".draftFu"), c:null};
-  ["st","fu","notes","ct","ctz","ttz"].forEach(k=>r[k].id=`${k}-${id}`);
+    box:q(".callbox"), ct:q(".ct"), ctz:q(".ctz"), ttz:q(".ttz"), calltxt:q(".calltxt"), gcal:q(".gcal"), gnote:q(".gnote"), em:q(".em"), del:q(".del"), draftFu:q(".draftFu"), c:null};
+  ["st","fu","notes","ct","ctz","ttz","em"].forEach(k=>r[k].id=`${k}-${id}`);
+  r.em.onchange=()=>write(id,{email:r.em.value.trim()});
   fillZones(r.ttz, myTz());
 
   r.st.onchange=()=>{
@@ -351,7 +359,7 @@ function makeCard(id){
   };
   r.draftFu.onclick=()=>{
     const c=r.c;
-    [["them","name"],["firm","firm"],["role","role"],["common","common"],["tag","tag"],["found","found"],["interest","interest"],["theirTz","theirTz"]]
+    [["them","name"],["firm","firm"],["role","role"],["email","email"],["common","common"],["tag","tag"],["found","found"],["interest","interest"],["theirTz","theirTz"]]
       .forEach(([field,key])=>{ if(c[key]) $(field).value=c[key]; });
     $("exNote").hidden=true; tab="followup"; regenerate(); setView("write"); window.scrollTo({top:0});
     toast(`Follow-up drafted for ${c.name}`);
@@ -371,6 +379,8 @@ function fillCard(r,c){
   if(act!==r.st) r.st.value=c.status||"Sent";
   if(act!==r.fu) r.fu.value=c.followUpOn||"";
   if(act!==r.notes) r.notes.value=c.notes||"";
+  if(act!==r.em) r.em.value=c.email||"";
+  r.gnote.textContent = c.email ? `Opens Google Calendar with ${c.email} added. Hit Save, then Send, and they get the invite.` : "Add their email above and this will send them the invite too.";
   if(act!==r.ttz) r.ttz.value=c.theirTz||myTz();
   if(act!==r.ctz) r.ctz.value=c.callEnteredIn||"me";
   const showCall = c.status==="Call booked" || c.status==="Talked" || !!c.callAt;
@@ -407,7 +417,7 @@ function addContact(c){
 $("logBtn").onclick=()=>{
   const f=read();
   if(!f.them){ toast("Add their name first"); return; }
-  addContact({name:f.them, firm:f.firm, role:f.role, common:f.common, tag:f.tag, found:f.found, interest:f.interest,
+  addContact({name:f.them, firm:f.firm, role:f.role, email:f.email, common:f.common, tag:f.tag, found:f.found, interest:f.interest,
     theirTz:f.theirTz, mins:f.mins, status:"Sent", sentOn:today(), followUpOn:plusDays(today(),7)});
 };
 $("addForm").addEventListener("submit",ev=>{
@@ -422,6 +432,78 @@ document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
 });
 // Keep "today" and "in 2 days" fresh if the sidebar stays open
 setInterval(()=>{ if(view==="track") renderTracker(); }, 60000);
+
+/* ---------- fill in from LinkedIn (Chrome extension only) ---------- */
+const isExtension = !!(window.chrome && chrome.scripting && chrome.tabs);
+
+// Runs inside the LinkedIn tab when you click the button. Reads only what's on your screen.
+function readLinkedInProfile(){
+  const txt = el => ((el && el.innerText) || "").trim();
+  const main = document.querySelector("main") || document.body;
+  const h1 = main.querySelector("h1");
+  let name = txt(h1) || (document.title || "").split("|")[0].replace(/^\(\d+\)\s*/,"").trim();
+  const top = h1 ? (h1.closest("section") || h1.parentElement) : main;
+  const headline = txt(top.querySelector(".text-body-medium"));
+  const loc = txt(top.querySelector(".text-body-small.inline"));
+  let company = "";
+  const cur = top.querySelector('button[aria-label^="Current company"], a[aria-label^="Current company"]');
+  if(cur) company = (cur.getAttribute("aria-label") || "").replace(/^Current company:\s*/i,"").replace(/\.\s*Click.*$/i,"").trim();
+  let expTitle = "", expCompany = "";
+  const anchor = document.getElementById("experience");
+  const sec = anchor ? anchor.closest("section") : null;
+  const item = sec ? sec.querySelector("li") : null;
+  if(item){
+    const spans = [...item.querySelectorAll('span[aria-hidden="true"]')].map(s=>s.innerText.trim()).filter(Boolean);
+    expTitle = spans[0] || ""; expCompany = (spans[1] || "").split("·")[0].trim();
+  }
+  return { name, headline, location: loc, company, expTitle, expCompany, pageText: (main.innerText || "").slice(0, 40000) };
+}
+
+const TZ_HINTS = [
+  [/district of columbia|washington,? d\.?c|dc-baltimore/i, "America/New_York"],
+  [/arizona|phoenix|scottsdale|tempe/i, "America/Phoenix"],
+  [/alaska|anchorage/i, "America/Anchorage"], [/hawaii|honolulu/i, "Pacific/Honolulu"],
+  [/california|oregon|nevada|seattle|washington,? united states|san francisco|los angeles|bay area|las vegas|san diego/i, "America/Los_Angeles"],
+  [/colorado|utah|new mexico|wyoming|montana|idaho|denver|boulder|salt lake/i, "America/Denver"],
+  [/illinois|texas|minnesota|wisconsin|missouri|iowa|louisiana|alabama|mississippi|tennessee|arkansas|oklahoma|kansas|nebraska|dakota|chicago|dallas|houston|austin|nashville|minneapolis|st\.? louis|new orleans/i, "America/Chicago"],
+  [/new york|new jersey|connecticut|massachusetts|pennsylvania|maryland|virginia|georgia|florida|carolina|ohio|michigan|delaware|rhode island|vermont|new hampshire|maine|indiana|kentucky|boston|atlanta|miami|charlotte|philadelphia|nyc|toronto|ontario/i, "America/New_York"],
+  [/united kingdom|england|london|scotland|ireland|dublin/i, "Europe/London"],
+  [/switzerland|zurich|zug|germany|france|netherlands|spain|italy|austria|belgium|sweden|denmark|norway|luxembourg|frankfurt|paris|amsterdam|madrid|milan/i, "Europe/Zurich"],
+  [/hong kong/i, "Asia/Hong_Kong"], [/japan|tokyo/i, "Asia/Tokyo"],
+];
+const tzFromLocation = s => (TZ_HINTS.find(([re])=>re.test(s||"")) || [])[1] || null;
+function splitHeadline(h){
+  const m = (h||"").match(/^(.*?)\s+(?:at|@)\s+(.+?)(?:\s*[|·•,].*)?$/i);
+  return m ? { role:m[1].trim(), firm:m[2].trim() } : { role:(h||"").split(/[|·•]/)[0].trim(), firm:"" };
+}
+
+async function grabLinkedIn(){
+  const btn = $("grabBtn");
+  try{
+    const [tab] = await chrome.tabs.query({ active:true, currentWindow:true });
+    if(!tab || !/^https:\/\/www\.linkedin\.com\/in\//.test(tab.url || "")){ toast("Open someone's LinkedIn profile in this tab first"); return; }
+    btn.disabled = true; btn.textContent = "Reading profile...";
+    const [res] = await chrome.scripting.executeScript({ target:{ tabId:tab.id }, func:readLinkedInProfile });
+    const p = res && res.result;
+    if(!p || !p.name){ toast("Couldn't read that profile. Scroll to the top and try again."); return; }
+    const h = splitHeadline(p.headline);
+    const got = [];
+    $("them").value = p.name; got.push("name");
+    const role = p.expTitle || h.role; if(role){ $("role").value = role; got.push("role"); }
+    const firm = p.company || p.expCompany || h.firm; if(firm){ $("firm").value = firm; got.push("firm"); }
+    const tz = tzFromLocation(p.location); if(tz){ $("theirTz").value = tz; got.push("time zone"); }
+    $("email").value = ""; $("found").value = "LinkedIn";
+    const school = ($("about").value.match(/\bat\s+(.+)$/i) || [])[1];
+    if(school && p.pageText.toLowerCase().includes(school.trim().toLowerCase())){ $("common").value = `you went to ${school.trim()} too`; got.push("shared school"); }
+    $("exNote").hidden = true; saveSettings(); regenerate();
+    toast(`Filled in ${got.join(", ")}. Double-check before you send.`);
+  }catch{
+    toast("Couldn't read that page. Reload the LinkedIn tab and try again.");
+  }finally{
+    btn.disabled = false; btn.textContent = "Fill in from this LinkedIn profile";
+  }
+}
+if(isExtension){ $("grabBox").hidden = false; $("grabBtn").onclick = grabLinkedIn; }
 
 /* ---------- start ---------- */
 const saved = loadSettings();
