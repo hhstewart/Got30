@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Got 30?</title>
-<link rel="icon" href="icons/icon48.png">
+<link rel="icon" href="icons/icon32.png" sizes="32x32">
+<link rel="icon" href="icons/icon128.png" sizes="128x128">
+<link rel="apple-touch-icon" href="icons/icon512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
 <style>
@@ -164,7 +166,10 @@ ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-
 .intro{min-height:calc(100vh - 72px);display:grid;place-items:center}
 .intro-in{width:100%;max-width:1040px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,400px);gap:56px;align-items:center}
 @media (max-width:860px){.intro-in{grid-template-columns:minmax(0,1fr);gap:28px}}
-.mark{width:54px;height:54px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-weight:700;font-size:24px;display:grid;place-items:center;letter-spacing:-.02em}
+.logo{display:block;flex:none}
+.logo-lg{width:64px;height:64px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .logo{width:.9em;height:.9em}
 .pitch{min-width:0}
 .pitch h1{font-family:var(--display);font-weight:700;font-size:clamp(46px,7.5vw,84px);letter-spacing:-.035em;line-height:.95;margin:18px 0 12px}
 .lede{font-size:clamp(17px,2vw,20px);line-height:1.45;color:var(--muted);max-width:32ch;margin:0;text-wrap:balance}
@@ -196,7 +201,7 @@ button.big{padding:12px 16px;font-size:15px}
 <section class="intro" id="intro" hidden aria-label="Welcome to Got 30?">
   <div class="intro-in">
     <div class="pitch">
-      <div class="mark" aria-hidden="true">30</div>
+      <svg class="logo logo-lg" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="28" fill="#1E6A49"></rect><path d="M28 26h64a10 10 0 0 1 10 10v38a10 10 0 0 1-10 10H58l-16 14V84H28a10 10 0 0 1-10-10V36a10 10 0 0 1 10-10z" fill="#FFFFFF"></path><text x="60" y="66" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="700" font-size="31" letter-spacing="-1" fill="#1E6A49">30?</text></svg>
       <h1>Got 30?</h1>
       <p class="lede">Cold emails to professionals that are short, personal, and easy to say yes to.</p>
       <div class="sample" aria-hidden="true">
@@ -231,7 +236,7 @@ button.big{padding:12px 16px;font-size:15px}
 <div class="wrap" id="app">
   <header>
     <div>
-      <h1>Got 30?</h1>
+      <h1 class="brand"><svg class="logo" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="28" fill="#1E6A49"></rect><path d="M28 26h64a10 10 0 0 1 10 10v38a10 10 0 0 1-10 10H58l-16 14V84H28a10 10 0 0 1-10-10V36a10 10 0 0 1 10-10z" fill="#FFFFFF"></path><text x="60" y="66" text-anchor="middle" font-family="Bricolage Grotesque, system-ui, sans-serif" font-weight="700" font-size="31" letter-spacing="-1" fill="#1E6A49">30?</text></svg>Got 30?</h1>
       <p>Write a short, personal email that's easy to say yes to, then keep track of everyone you reach out to.</p>
     </div>
     <div class="headr">
