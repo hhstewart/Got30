@@ -545,10 +545,28 @@ function setSync(state){
     sb ? "Saved on this device only. Sign in to sync across devices." : "Saved on this device and browser.";
 }
 
+const GUEST = "got30-guest";
+const isGuest = () => { try{ return localStorage.getItem(GUEST)==="1"; }catch{ return false; } };
+const setGuest = on => { try{ on ? localStorage.setItem(GUEST,"1") : localStorage.removeItem(GUEST); }catch{} };
+let authMode = "in";
+function setMode(m){
+  authMode = m;
+  $("modeIn").setAttribute("aria-selected", m==="in"); $("modeUp").setAttribute("aria-selected", m==="up");
+  $("authTitle").textContent = m==="in" ? "Welcome back" : "Make your free account";
+  $("authSub").textContent = m==="in" ? "Sign in to pick up your tracker on any device." : "Your tracker syncs between the website, the Chrome sidebar, and your phone.";
+  $("signInBtn").textContent = m==="in" ? "Sign in" : "Create account";
+  $("acctPass").autocomplete = m==="in" ? "current-password" : "new-password";
+  acctMsg("");
+}
+function showIntro(on){
+  $("intro").hidden = !on; $("app").hidden = on;
+  if(on){ window.scrollTo({top:0}); setTimeout(()=>{ if(!$("acctEmailIn").value) $("acctEmailIn").focus(); },0); }
+}
 function renderAccount(){
   $("acctBtn").textContent = user ? "Account" : "Sign in";
-  $("acctForm").hidden = !!user; $("acctIn").hidden = !user;
+  $("acctIn").hidden = !user;
   if(user) $("acctEmail").textContent = user.email || "your account";
+  showIntro(!!sb && !user && !isGuest());
 }
 function acctMsg(t, bad){ $("acctMsg").textContent = t; $("acctMsg").classList.toggle("err", !!bad); }
 
@@ -573,31 +591,38 @@ async function onUser(u){
 
 async function startAuth(){
   setSync();
-  if(!sb) return;                                  // no Supabase settings yet: device-only mode
+  if(!sb) return;                                  // no Supabase settings yet: device-only mode, no welcome screen
+  if(!isGuest()) $("app").hidden = true;           // avoid flashing the app before we know if you're signed in
   $("acctBtn").hidden = false;
-  $("acctBtn").onclick = ()=>{ $("acctPanel").hidden = !$("acctPanel").hidden; if(!$("acctPanel").hidden && !user) $("acctEmailIn").focus(); };
-  const go = async signUp=>{
+  $("acctBtn").onclick = ()=>{
+    if(user){ $("acctPanel").hidden = !$("acctPanel").hidden; return; }
+    setGuest(false); setMode("in"); showIntro(true);
+  };
+  $("modeIn").onclick = ()=>setMode("in");
+  $("modeUp").onclick = ()=>setMode("up");
+  $("guestBtn").onclick = ()=>{ setGuest(true); showIntro(false); };
+  const go = async ()=>{
+    const signUp = authMode==="up";
     const email = $("acctEmailIn").value.trim(), password = $("acctPass").value;
     if(!email || password.length < 6){ acctMsg("Enter your email and a password of at least 6 characters.", true); return; }
-    $("signInBtn").disabled = $("signUpBtn").disabled = true; acctMsg(signUp ? "Creating your account..." : "Signing in...");
+    const btn = $("signInBtn"); btn.disabled = true; acctMsg(signUp ? "Creating your account..." : "Signing in...");
     try{
       if(signUp){
         const opts = /^https?:/.test(location.href) ? { emailRedirectTo: location.href.split("#")[0] } : {};
         const { data, error } = await sb.auth.signUp({ email, password, options: opts });
-        if(error) acctMsg(/registered|exists/i.test(error.message) ? "That email already has an account. Hit Sign in." : error.message, true);
+        if(error) acctMsg(/registered|exists/i.test(error.message) ? "That email already has an account. Switch to Sign in." : error.message, true);
         else if(!data.session) acctMsg("Check your email for a confirmation link, then come back and sign in.");
-        else { acctMsg(""); $("acctPanel").hidden = true; toast("Account created"); }
+        else { acctMsg(""); setGuest(false); $("acctPass").value=""; toast("Account created. You're in."); }
       } else {
         const { error } = await sb.auth.signInWithPassword({ email, password });
         if(error) acctMsg(/confirm/i.test(error.message) ? "Confirm your email first, then sign in." : "Wrong email or password.", true);
-        else { acctMsg(""); $("acctPanel").hidden = true; toast("Signed in"); }
+        else { acctMsg(""); setGuest(false); $("acctPass").value=""; toast("Signed in"); }
       }
     }catch{ acctMsg("Couldn't reach the server. Check your connection.", true); }
-    finally{ $("signInBtn").disabled = $("signUpBtn").disabled = false; }
+    finally{ btn.disabled = false; }
   };
-  $("acctForm").addEventListener("submit", e=>{ e.preventDefault(); go(false); });
-  $("signUpBtn").onclick = ()=>go(true);
-  $("signOutBtn").onclick = async()=>{ await sb.auth.signOut().catch(()=>{}); $("acctPanel").hidden = true; toast("Signed out"); };
+  $("acctForm").addEventListener("submit", e=>{ e.preventDefault(); go(); });
+  $("signOutBtn").onclick = async()=>{ await sb.auth.signOut().catch(()=>{}); $("acctPanel").hidden = true; setGuest(false); toast("Signed out"); };
 
   sb.auth.onAuthStateChange((_event, session)=>{
     const u = session ? session.user : null;
