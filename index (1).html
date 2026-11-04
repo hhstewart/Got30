@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E0F13">
+<title>Got 30?</title>
+<link rel="icon" href="icons/icon32.png" sizes="32x32">
+<link rel="icon" href="icons/icon128.png" sizes="128x128">
+<link rel="apple-touch-icon" href="icons/icon512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: dark app shell. Sticky top bar, then Write (form cards left, email client right) or Tracker (stats, calls, contact cards). */
+:root{
+  --bg:#0E0F13; --field:#121419; --surface:#17191F; --surface-2:#1F222A; --line:#2A2D36; --line-2:#383C47;
+  --ink:#F4F5F7; --muted:#A0A4AE; --dim:#888D99;
+  --accent:#6C9BFF; --accent-ink:#0E0F13; --accent-text:#8FB3FF; --accent-soft:rgba(108,155,255,.15); --accent-line:rgba(108,155,255,.5);
+  --warn:#FFB443; --warn-soft:rgba(255,180,67,.14); --cool:#C9B2FF; --cool-soft:rgba(201,178,255,.14);
+  --display:"Manrope", "Segoe UI", system-ui, sans-serif;
+  --ui:"Manrope", "Segoe UI", system-ui, sans-serif;
+  --mono:"Manrope", "Segoe UI", system-ui, sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.gutter{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1160px;margin:0 auto}
+::selection{background:var(--accent);color:var(--accent-ink)}
+
+/* type */
+h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.02em;text-wrap:balance}
+.eyebrow,legend,.lbl{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.hint{color:var(--muted);font-size:13.5px;margin:0}
+.hint.err{color:var(--warn)}
+.accent{color:var(--accent)}
+.mark{color:var(--accent-text)}
+
+/* controls */
+label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500;color:var(--ink);min-width:0}
+label small{font-weight:400;color:var(--dim);font-size:12.5px}
+input,select,textarea{font:inherit;font-size:14.5px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+input::placeholder,textarea::placeholder{color:var(--dim)}
+input:hover,select:hover,textarea:hover{border-color:var(--line-2)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-line);box-shadow:0 0 0 3px var(--accent-soft)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;font-weight:600;font-size:14px;border-radius:10px;padding:10px 16px;cursor:pointer;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink)}
+button:hover{border-color:var(--dim)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button.primary:hover{filter:brightness(1.08)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.ghost{padding:7px 12px;font-size:13px}
+button.danger{color:var(--warn);background:transparent}
+button.big{padding:14px 18px;font-size:15.5px}
+a.btnlink{font-weight:600;font-size:13px;color:var(--accent);text-decoration:none;padding:7px 12px;border:1px solid var(--accent-line);border-radius:10px;background:transparent;display:inline-block}
+a.btnlink:hover{background:var(--accent-soft)}
+.actions,.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ---------- welcome screen ---------- */
+.intro{min-height:100vh;display:grid;align-items:center;padding-block:48px}
+.intro-in{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,410px);gap:64px;align-items:center}
+@media (max-width:900px){.intro-in{grid-template-columns:minmax(0,1fr);gap:32px}}
+.logo{display:block;flex:none}
+.logo-lg{width:60px;height:60px}
+.pitch{min-width:0}
+.pitch h1{font-weight:800;font-size:clamp(60px,9.5vw,124px);line-height:.9;letter-spacing:-.06em;margin:22px 0 18px}
+.lede{font-size:clamp(18px,2vw,22px);line-height:1.4;color:var(--muted);max-width:30ch;margin:0}
+.lede b{color:var(--ink);font-weight:600}
+.sample{margin-top:34px;background:var(--surface);border:1px solid var(--line-2);border-radius:14px;max-width:440px;transform:rotate(-1.5deg);box-shadow:0 30px 60px -30px #000}
+.srow{display:flex;gap:10px;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13.5px;min-width:0}
+.srow span{color:var(--dim);width:58px;flex:none}
+.sample p{margin:14px 16px;font-size:15px;line-height:1.55;color:var(--ink)}
+.sample .slot-s{margin-top:-6px;font-weight:700;font-size:13px;color:var(--accent-text)}
+.feats{list-style:none;padding:0;margin:32px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;max-width:640px}
+.feats li{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:13.5px;line-height:1.45;border-top:1px solid var(--line-2);padding-top:12px}
+.feats b{color:var(--ink);font-weight:600;font-size:14.5px}
+@media (max-width:700px){.feats{grid-template-columns:minmax(0,1fr)}}
+.authcard{background:var(--surface);border:1px solid var(--line-2);border-radius:20px;padding:26px;display:flex;flex-direction:column;gap:14px;min-width:0;box-shadow:0 40px 80px -40px #000}
+.seg{display:grid;grid-template-columns:1fr 1fr;padding:4px;background:var(--field);border:1px solid var(--line);border-radius:12px;gap:4px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:9px;font-size:13.5px;border-radius:9px}
+.seg button[aria-selected="true"]{background:var(--surface-2);color:var(--ink)}
+.authcard h2{font-size:30px;font-weight:700;margin:8px 0 0;line-height:1.1}
+.linkish{border:0;background:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px;padding:4px;font-weight:500;font-size:13.5px;align-self:center}
+.linkish:hover{color:var(--ink)}
+.fine{font-size:12px;color:var(--dim);margin:0;text-align:center}
+#acctMsg:empty{display:none}
+@media (max-width:600px){.intro{min-height:0;padding-block:28px}.sample,.feats{display:none}.pitch h1{font-size:64px;margin:16px 0 12px}.authcard{padding:20px}}
+
+/* ---------- app shell ---------- */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:rgba(14,15,19,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin:0;font-size:20px;font-weight:800;letter-spacing:-.04em}
+.brand .logo{width:32px;height:32px}
+.nav{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.nav button{border:0;background:transparent;color:var(--muted);font-weight:600;padding:8px 16px;border-radius:9px;display:flex;gap:8px;align-items:center}
+.nav button:hover{color:var(--ink)}
+.nav button[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
+.nav .n{font-family:var(--mono);font-size:11.5px;padding:1px 7px;border-radius:999px;background:var(--surface-2);color:var(--ink)}
+.nav button[aria-current="page"] .n{background:var(--accent-ink);color:var(--accent)}
+.topright{display:flex;gap:8px;align-items:center}
+@media (max-width:460px){.brand span{display:none}.nav button{padding:8px 12px}}
+
+main.wrap{display:flex;flex-direction:column;gap:24px;padding-block:28px 64px}
+.acct{background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:14px 16px}
+.acctin{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.acctin p{margin:0;overflow-wrap:anywhere;color:var(--muted)}
+.acctin b{color:var(--ink)}
+.view{display:flex;flex-direction:column;gap:24px}
+.pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px 24px;flex-wrap:wrap}
+.pagehead h2{font-size:clamp(34px,5vw,54px);font-weight:800;line-height:1;letter-spacing:-.05em;margin:6px 0 0}
+.formula{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.formula li{font-size:12.5px;font-weight:500;padding:5px 11px;border-radius:999px;border:1px solid var(--line-2);color:var(--muted);background:var(--surface)}
+.formula b{font-family:var(--mono);color:var(--accent-text);font-weight:800;margin-right:6px}
+
+/* ---------- write view ---------- */
+.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+form{display:flex;flex-direction:column;gap:14px}
+fieldset.fcard{border:1px solid var(--line);border-radius:16px;margin:0;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0;background:var(--surface)}
+fieldset.fcard legend{float:left;width:100%;padding:0;margin:0 0 2px;display:flex;align-items:center;gap:10px;color:var(--muted)}
+fieldset.fcard legend b{color:var(--accent);font-weight:500}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+@media (max-width:400px){.row2{grid-template-columns:minmax(0,1fr)}}
+.grab{display:flex;flex-direction:column;gap:8px;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:12px;padding:12px}
+.grab small{font-size:12.5px;color:var(--muted)}
+.example-note{font-size:13px;color:var(--warn);background:var(--warn-soft);border-radius:10px;padding:9px 12px;margin:0}
+
+.slots{display:flex;flex-direction:column;gap:8px}
+.slot{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:6px;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:8px}
+.slot input{padding:7px 8px;font-size:13.5px;border-color:transparent;background:var(--surface-2)}
+.slot .out{grid-column:1/-1;font-size:12.5px;color:var(--dim);padding:0 2px}
+.slot .out b{color:var(--accent-text);font-weight:600}
+.slot .out.past{color:var(--warn)}
+@media (max-width:420px){.slot{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.slot .d{grid-column:1/-1}}
+
+.panel{background:var(--surface);border:1px solid var(--line-2);border-radius:18px;overflow:hidden;min-width:0;box-shadow:0 30px 60px -40px #000}
+@media (min-width:901px){.panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 84px)}}
+.tabs{display:flex;gap:2px;padding:8px;border-bottom:1px solid var(--line);overflow-x:auto;background:var(--field)}
+.tab{border:0;background:transparent;color:var(--muted);font-weight:500;padding:8px 13px;border-radius:9px;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--surface-2);color:var(--ink);font-weight:600}
+.status{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 18px;font-size:12.5px;color:var(--dim);border-bottom:1px solid var(--line)}
+.status button{padding:4px 10px;font-size:12.5px}
+.pill{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text);white-space:nowrap}
+.mailrow{display:flex;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line);font-size:14px}
+.mailrow span{color:var(--dim);width:60px;flex:none;font-size:13px}
+.mailrow input{border:0;padding:4px 0;background:transparent;font-weight:600;box-shadow:none}
+.mailrow input:focus{box-shadow:none}
+.body{padding:18px}
+.body textarea{font-size:15.5px;line-height:1.7;border:0;padding:0;min-height:420px;resize:vertical;background:transparent;box-shadow:none}
+.body textarea:focus{box-shadow:none}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid var(--line);background:var(--field)}
+.foot .count{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.list{padding:22px;display:flex;flex-direction:column;gap:16px}
+.list h3{font-size:22px;margin:0;font-weight:700}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.checks li{display:grid;grid-template-columns:24px 1fr;gap:12px;align-items:start}
+.mark{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--accent-soft);color:var(--accent)}
+.mark.no{background:var(--warn-soft);color:var(--warn)}
+.checks small{display:block;color:var(--muted)}
+ol.q{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px;font-size:15.5px}
+ol.q li::marker{font-family:var(--mono);color:var(--accent)}
+
+/* ---------- tracker ---------- */
+.strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.strip div{padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.strip b{font-family:var(--display);font-weight:800;font-size:44px;line-height:.9;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.strip span{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+.strip .due b{color:var(--warn)}
+@media (max-width:700px){.strip{grid-template-columns:repeat(2,minmax(0,1fr))}.strip b{font-size:36px}}
+.upcoming{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.upcoming h3{margin:0;font-size:18px;font-weight:800;color:var(--accent-text)}
+.up{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--accent-line)}
+.up:first-of-type{border-top:0;padding-top:0}
+.up .who{font-weight:600}
+.up .when{font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.up .soon{color:var(--accent);font-weight:600}
+.addrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:end;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+@media (max-width:700px){.addrow{grid-template-columns:minmax(0,1fr)}}
+.toolbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:13px;font-weight:500;padding:7px 14px;border-radius:999px;color:var(--muted);background:transparent;border-color:var(--line-2)}
+.chip:hover{color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card:hover{border-color:var(--line-2)}
+.card.due{border-color:var(--warn)}
+.card .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.card h4{font-size:21px;font-weight:700;margin:0;line-height:1.15;overflow-wrap:anywhere}
+.card .sub{font-size:13.5px;color:var(--muted);overflow-wrap:anywhere}
+.card .meta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.card .meta label{font-size:12px;color:var(--dim);font-weight:500}
+.card .meta select,.card .meta input{padding:7px 9px;font-size:13.5px}
+.card .meta .full{grid-column:1/-1}
+.callbox{background:var(--field);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.calltxt{font-size:13.5px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.calltxt b{font-weight:600;color:var(--ink)}
+.card textarea{font-size:14px;min-height:76px;resize:vertical}
+.card .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.s-Drafted{background:var(--surface-2);color:var(--muted)}
+.s-Sent,.s-Followed-up{background:var(--cool-soft);color:var(--cool)}
+.s-Call-booked,.s-Talked{background:var(--accent-soft);color:var(--accent-text)}
+.s-No-reply,.s-due{background:var(--warn-soft);color:var(--warn)}
+.empty{border:1px dashed var(--line-2);border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:8px}
+.empty h3{margin:0;font-size:24px;font-weight:700}
+.empty p{margin:0;color:var(--muted);max-width:56ch}
+
+/* weekly goal */
+.weekpill{margin-left:8px;letter-spacing:.04em;text-transform:none;font-weight:700;color:var(--accent-text);background:var(--accent-soft);padding:2px 8px;border-radius:999px}
+.weekpill:empty{display:none}
+.goal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.goalhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.goaltxt{margin:4px 0 0;font-size:22px;font-weight:800;letter-spacing:-.03em}
+.goaltxt .of{color:var(--muted);font-weight:600}
+.goalset{flex-direction:row;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.goalset input{width:68px;padding:7px 9px;text-align:center}
+.bar{height:10px;border-radius:999px;background:var(--field);border:1px solid var(--line);overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--accent);border-radius:999px}
+.goal.done .bar span{background:#5BE0A0}
+.goal.done .goaltxt{color:#7EE8B4}
+
+/* after the call */
+.after{background:var(--field);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.after .lbl{color:var(--accent-text)}
+.refs{display:flex;flex-wrap:wrap;gap:6px}
+.refs span{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line-2)}
+.refadd{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto;gap:6px;align-items:end}
+.refadd input{padding:7px 9px;font-size:13.5px}
+@media (max-width:400px){.refadd{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.refadd button{grid-column:1/-1}}
+.card .remind{align-self:flex-start}
+
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--accent);color:var(--accent-ink);padding:10px 16px;border-radius:12px;font-size:13.5px;font-weight:600;z-index:20;max-width:calc(100% - 32px);box-shadow:0 20px 40px -20px #000}
+@media (prefers-reduced-motion:no-preference){button,.tab,.chip,input,select,textarea,a.btnlink{transition:background .15s,color .15s,border-color .15s,box-shadow .15s}}
+</style>
+</head>
+<body>
+<section class="intro gutter" id="intro" hidden aria-label="Welcome to Got 30?">
+  <div class="intro-in wrap">
+    <div class="pitch">
+      <svg class="logo logo-lg" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="28" fill="#6C9BFF"></rect><path d="M28 26h64a10 10 0 0 1 10 10v38a10 10 0 0 1-10 10H58l-16 14V84H28a10 10 0 0 1-10-10V36a10 10 0 0 1 10-10z" fill="#FFFFFF"></path><text x="60" y="66" text-anchor="middle" font-family="Manrope, system-ui, sans-serif" font-weight="800" font-size="30" letter-spacing="-1.5" fill="#2F5BD6">30?</text></svg>
+      <h1>Got <span class="accent">30?</span></h1>
+      <p class="lede">Cold emails to professionals that are <b>short, personal, and easy to say yes to.</b></p>
+      <div class="sample" aria-hidden="true">
+        <div class="srow"><span>To</span>Jordan Lee, Partners Group</div>
+        <div class="srow"><span>Subject</span><b>Partners Group CSU Chat</b></div>
+        <p>&hellip;I'd love to hear how you got to where you are. Would you have 30 minutes to chat?</p>
+        <p class="slot-s">Tue, Nov 10 &middot; 12-3pm ET</p>
+      </div>
+      <ul class="feats">
+        <li><b>Your formula, built in.</b>Shared connection up top, one small ask, specific times.</li>
+        <li><b>Time zones, handled.</b>Enter your availability once. It shows up in theirs.</li>
+        <li><b>A tracker that keeps you on it.</b>Follow-ups, call times, and notes in one place.</li>
+      </ul>
+    </div>
+    <form class="authcard" id="acctForm" autocomplete="on">
+      <div class="seg" role="tablist" aria-label="Sign in or create an account">
+        <button type="button" role="tab" id="modeIn" aria-selected="true">Sign in</button>
+        <button type="button" role="tab" id="modeUp" aria-selected="false">Create account</button>
+      </div>
+      <h2 id="authTitle">Welcome back</h2>
+      <p class="hint" id="authSub">Sign in to pick up your tracker on any device.</p>
+      <label>Email<input id="acctEmailIn" type="email" autocomplete="email" required></label>
+      <label>Password <small>At least 6 characters</small><input id="acctPass" type="password" autocomplete="current-password" minlength="6" required></label>
+      <button type="submit" class="primary big" id="signInBtn">Sign in</button>
+      <span class="hint" id="acctMsg" role="status"></span>
+      <button type="button" class="linkish" id="guestBtn">Continue without an account</button>
+      <p class="fine">Your contacts are private to your account. Without one, they save on this device only.</p>
+    </form>
+  </div>
+</section>
+
+<div id="app">
+  <header class="topbar gutter">
+    <div class="wrap">
+      <h1 class="brand"><svg class="logo" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="28" fill="#6C9BFF"></rect><path d="M28 26h64a10 10 0 0 1 10 10v38a10 10 0 0 1-10 10H58l-16 14V84H28a10 10 0 0 1-10-10V36a10 10 0 0 1 10-10z" fill="#FFFFFF"></path><text x="60" y="66" text-anchor="middle" font-family="Manrope, system-ui, sans-serif" font-weight="800" font-size="30" letter-spacing="-1.5" fill="#2F5BD6">30?</text></svg><span>Got 30?</span></h1>
+      <nav class="nav" aria-label="Views">
+        <button type="button" id="navWrite" aria-current="page">Write</button>
+        <button type="button" id="navTrack">Tracker <span class="n" id="navCount">0</span></button>
+      </nav>
+      <div class="topright">
+        <button type="button" class="ghost" id="acctBtn" hidden>Sign in</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap gutter">
+    <section class="acct" id="acctPanel" hidden aria-label="Account">
+      <div id="acctIn" class="acctin" hidden>
+        <p>Signed in as <b id="acctEmail"></b>. Your tracker syncs everywhere you sign in.</p>
+        <button type="button" class="ghost" id="signOutBtn">Sign out</button>
+      </div>
+    </section>
+
+    <!-- WRITE VIEW -->
+    <div id="writeView" class="view">
+      <div class="pagehead">
+        <div>
+          <p class="eyebrow">New outreach <span class="weekpill" id="weekPill"></span></p>
+          <h2>Who are you reaching out to?</h2>
+        </div>
+        <ol class="formula" aria-label="The formula">
+          <li><b>01</b>Your connection up top</li>
+          <li><b>02</b>Why you're reaching out</li>
+          <li><b>03</b>One small ask</li>
+          <li><b>04</b>Times in their time zone</li>
+        </ol>
+      </div>
+      <div class="grid">
+        <form id="f" autocomplete="off">
+          <p class="example-note" id="exNote">Example filled in. Swap in your real contact.</p>
+          <fieldset class="fcard">
+            <legend>Them</legend>
+            <div class="grab" id="grabBox" hidden>
+              <button type="button" class="primary" id="grabBtn">Fill in from this LinkedIn profile</button>
+              <small>Open their LinkedIn profile in this tab, then click.</small>
+            </div>
+            <label>How do you know them?
+              <select id="kind">
+                <option value="shared">Shared connection (school, club, hometown)</option>
+                <option value="referral">Someone referred me to them</option>
+                <option value="event">Met them at an event</option>
+                <option value="recruiter">They're a recruiter</option>
+              </select></label>
+            <label data-kind="referral" hidden>Who referred you?<input id="referrer" placeholder="Taylor Kim"></label>
+            <label data-kind="event" hidden>Where did you meet? <small>Finishes "It was great meeting you at..."</small>
+              <input id="event" placeholder="the CSU finance career fair"></label>
+            <div class="row2">
+              <label>Their name<input id="them" value="Jordan Lee"></label>
+              <label>Firm<input id="firm" value="Partners Group"></label>
+            </div>
+            <label>Their role<input id="role" value="Private Equity Associate"></label>
+            <label>Their email <small>Optional. Fills in Gmail and the calendar invite.</small>
+              <input id="email" type="email" placeholder="jordan.lee@partnersgroup.com"></label>
+            <label>Their time zone <small>Check their LinkedIn location</small><select id="theirTz"></select></label>
+            <label data-kind="shared">What you have in common <small>Finishes "I saw that..."</small>
+              <input id="common" value="you graduated from CSU too"></label>
+            <div class="row2">
+              <label data-kind="shared">Subject tag<input id="tag" value="CSU"></label>
+              <label data-kind="shared recruiter">Where you found them<input id="found" value="LinkedIn"></label>
+            </div>
+          </fieldset>
+          <fieldset class="fcard">
+            <legend>The ask</legend>
+            <label>The career you're interested in<input id="interest" value="private equity"></label>
+            <label>Call length
+              <select id="mins"><option>15</option><option>20</option><option selected>30</option></select></label>
+            <label>Your availability <small>Enter it in your time. The email shows it in theirs.</small></label>
+            <div class="slots" id="slots"></div>
+            <label>Anything else to mention? <small>Optional: a deal they worked on, a post they wrote</small>
+              <textarea id="extra" rows="2" placeholder="e.g. saw their post about the new Denver office"></textarea></label>
+          </fieldset>
+          <fieldset class="fcard">
+            <legend>You</legend>
+            <label>Your name<input id="me" value="Hunter Stewart"></label>
+            <label>About you <small>Finishes "I'm a..."</small>
+              <input id="about" value="junior studying finance at Colorado State University"></label>
+            <label>Your time zone<select id="myTz"></select></label>
+          </fieldset>
+        </form>
+
+        <section class="panel" aria-label="Your draft">
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" data-tab="email" aria-selected="true">First email</button>
+            <button class="tab" role="tab" data-tab="followup" aria-selected="false">Follow-up</button>
+            <button class="tab" role="tab" data-tab="thanks" aria-selected="false">Thank-you</button>
+            <button class="tab" role="tab" data-tab="coach" aria-selected="false">Why it works</button>
+            <button class="tab" role="tab" data-tab="prep" aria-selected="false">Call prep</button>
+          </div>
+          <div class="status">
+            <span id="statusText">Updates as you fill in the form</span>
+            <button type="button" class="ghost" id="rebuild" hidden>Rebuild from form</button>
+          </div>
+          <div id="compose">
+            <div class="mailrow"><span>To</span><input id="toLine" aria-label="To" readonly></div>
+            <div class="mailrow"><span>Subject</span><input id="subj" aria-label="Subject"></div>
+            <div class="body"><textarea id="bodyText" aria-label="Email body"></textarea></div>
+            <div class="foot">
+              <span class="count" id="count"></span>
+              <div class="btns">
+                <button type="button" class="ghost" id="copySubj">Copy subject</button>
+                <button type="button" class="ghost" id="copyBody">Copy email</button>
+                <a class="btnlink" id="gmailBtn" target="_blank" rel="noopener">Open in Gmail</a>
+                <button type="button" class="ghost primary" id="logBtn">I sent it: add to tracker</button>
+              </div>
+            </div>
+          </div>
+          <div id="coach" class="list" hidden>
+            <h3>Checklist for this email</h3>
+            <ul class="checks" id="checks"></ul>
+          </div>
+          <div id="prep" class="list" hidden>
+            <h3>Questions to bring to the call</h3>
+            <ol class="q" id="questions"></ol>
+            <p class="hint">Add one about something specific from their profile. End every call by asking who else you should talk to.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- TRACKER VIEW -->
+    <div id="trackView" class="view" hidden>
+      <div class="pagehead">
+        <div>
+          <p class="eyebrow">Tracker</p>
+          <h2>Everyone you've reached out to</h2>
+        </div>
+      </div>
+      <section class="goal" aria-label="Weekly goal">
+        <div class="goalhead">
+          <div>
+            <p class="eyebrow">This week</p>
+            <p class="goaltxt" id="goalTxt"></p>
+          </div>
+          <label class="goalset">Weekly goal<input type="number" id="goalIn" min="1" max="50" value="5" inputmode="numeric"></label>
+        </div>
+        <div class="bar" aria-hidden="true"><span id="goalBar"></span></div>
+      </section>
+      <div class="strip" aria-label="Summary">
+        <div><b id="kOut">0</b><span>Reached out</span></div>
+        <div><b id="kWait">0</b><span>Waiting on reply</span></div>
+        <div class="due"><b id="kDue">0</b><span>Follow-ups due</span></div>
+        <div><b id="kCalls">0</b><span>Calls booked</span></div>
+      </div>
+      <section class="upcoming" id="upcoming" hidden aria-label="Upcoming calls">
+        <h3>Upcoming calls</h3>
+        <div id="upList"></div>
+      </section>
+      <form class="addrow" id="addForm" autocomplete="off">
+        <label>Name<input id="aName" placeholder="Taylor Kim" required></label>
+        <label>Firm<input id="aFirm" placeholder="Goldman Sachs"></label>
+        <label>Role<input id="aRole" placeholder="IB Analyst"></label>
+        <button type="submit" class="primary" id="aBtn">Add contact</button>
+      </form>
+      <div class="toolbar">
+        <div class="chips" id="chips">
+          <button type="button" class="chip" data-f="all" aria-pressed="true">All</button>
+          <button type="button" class="chip" data-f="due" aria-pressed="false">Follow-up due</button>
+          <button type="button" class="chip" data-f="wait" aria-pressed="false">Waiting</button>
+          <button type="button" class="chip" data-f="calls" aria-pressed="false">Calls</button>
+          <button type="button" class="chip" data-f="noreply" aria-pressed="false">No reply</button>
+        </div>
+        <span class="hint" id="syncNote">Saved on this device and browser.</span>
+      </div>
+      <div class="empty" id="emptyBox">
+        <h3 id="emptyTitle">No one in your tracker yet</h3>
+        <p id="emptyText"></p>
+      </div>
+      <div class="cards" id="cards"></div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
